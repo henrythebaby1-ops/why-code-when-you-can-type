@@ -1,0 +1,173 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Why Code When You Can Type?</title>
+<meta name="description" content="Word chain, spelling, scrambles and The So Crazy Elevator — little games for people who'd rather type than code.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=Nunito:wght@500;700;800;900&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='24' fill='%236b3fd6'/><text x='50' y='68' font-size='56' text-anchor='middle' fill='white' font-family='Arial' font-weight='bold'>Aa</text></svg>">
+<style>
+  .hero { padding: 40px 0 28px; display: grid; grid-template-columns: 1.2fr .8fr; gap: 28px; align-items: center; }
+  .hero h1 { font-size: clamp(40px, 7vw, 72px); line-height: .98; font-weight: 700; }
+  .hero h1 .q { color: var(--coral); display: inline-block; transform: rotate(10deg); }
+  .hero h1 .hl { background: linear-gradient(transparent 62%, color-mix(in srgb, var(--sun) 60%, transparent) 62%); }
+  .hero p { font-size: 19px; color: var(--muted); max-width: 520px; line-height: 1.5; margin: 18px 0 24px; }
+  .keys { position: relative; height: 280px; }
+  .key {
+    position: absolute; width: 86px; height: 86px; border-radius: 20px; display: grid; place-items: center;
+    font-family: "Fredoka"; font-weight: 700; font-size: 40px; color: var(--ink);
+    background: var(--card); border: 3px solid var(--line); box-shadow: 0 8px 0 var(--line);
+    animation: bob 3.2s ease-in-out infinite;
+  }
+  .key:nth-child(1) { left: 6%; top: 10%; background: #ffe1db; color: #b83a29; border-color: #ffc4b9; box-shadow: 0 8px 0 #ffc4b9; animation-delay: -.4s; transform: rotate(-8deg); }
+  .key:nth-child(2) { left: 38%; top: 0; background: #e6defd; color: #5228b5; border-color: #cfc0fb; box-shadow: 0 8px 0 #cfc0fb; animation-delay: -1.2s; }
+  .key:nth-child(3) { left: 68%; top: 18%; background: #d6f5ea; color: #0c7a59; border-color: #b0ead6; box-shadow: 0 8px 0 #b0ead6; animation-delay: -2s; }
+  .key:nth-child(4) { left: 20%; top: 52%; background: #fff0cc; color: #a26a00; border-color: #ffe099; box-shadow: 0 8px 0 #ffe099; animation-delay: -.8s; }
+  .key:nth-child(5) { left: 54%; top: 58%; background: #d9edff; color: #135e9e; border-color: #b5dbff; box-shadow: 0 8px 0 #b5dbff; animation-delay: -1.6s; }
+  @keyframes bob { 50% { translate: 0 -10px; } }
+
+  .section-title { display: flex; align-items: baseline; justify-content: space-between; margin: 22px 0 14px; gap: 10px; flex-wrap: wrap; }
+  .section-title h2 { font-size: 28px; }
+  .section-title span { color: var(--muted); font-weight: 700; }
+
+  .grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 18px; }
+  .game { text-decoration: none; display: flex; flex-direction: column; overflow: hidden; transition: transform .15s, box-shadow .15s; }
+  .game:hover { transform: translateY(-4px) rotate(-.4deg); }
+  .game .art { height: 150px; position: relative; display: grid; place-items: center; overflow: hidden; }
+  .game .body { padding: 16px 18px 20px; }
+  .game h3 { font-size: 22px; margin-bottom: 6px; }
+  .game p { color: var(--muted); margin: 0 0 14px; line-height: 1.45; }
+  .tag { font-size: 12px; font-weight: 900; text-transform: uppercase; letter-spacing: .08em; color: var(--purple); }
+
+  .art.chain { background: linear-gradient(135deg, #8f6bff, #6b3fd6); }
+  .chain-words { display: flex; gap: 6px; align-items: center; font-family: "Fredoka"; font-weight: 700; color: #fff; font-size: 20px; flex-wrap: wrap; justify-content: center; padding: 0 10px; }
+  .chain-words b { background: rgba(255,255,255,.18); padding: 6px 10px; border-radius: 10px; }
+  .chain-words i { font-style: normal; color: var(--sun); }
+  .art.spell { background: linear-gradient(135deg, #ffb72b, #ff6b57); }
+  .tiles { display: flex; gap: 6px; }
+  .tiles span { width: 40px; height: 46px; border-radius: 10px; background: #fff; color: #c94130; display: grid; place-items: center; font-family: "Fredoka"; font-weight: 700; font-size: 24px; box-shadow: 0 4px 0 rgba(0,0,0,.15); }
+  .tiles span:nth-child(odd) { transform: rotate(-6deg) translateY(4px); }
+  .tiles span:nth-child(even) { transform: rotate(5deg); }
+
+  .feature { margin-top: 26px; display: grid; grid-template-columns: 1.1fr 1fr; overflow: hidden; text-decoration: none; }
+  .feature .art { min-height: 300px; background: #1b1430; position: relative; overflow: hidden; }
+  .feature .body { padding: 28px; display: flex; flex-direction: column; justify-content: center; gap: 10px; }
+  .feature h3 { font-size: 34px; line-height: 1.05; }
+  .feature p { color: var(--muted); font-size: 17px; line-height: 1.5; margin: 0 0 8px; }
+  .new { align-self: flex-start; background: var(--coral); color: #fff; font-weight: 900; font-size: 12px; letter-spacing: .1em; padding: 5px 10px; border-radius: 8px; transform: rotate(-3deg); }
+
+  /* mini elevator illustration */
+  .shaft { position: absolute; inset: 0; background: repeating-linear-gradient(0deg, #231a3d 0 60px, #1e1636 60px 120px); animation: shaft 1.2s linear infinite; }
+  @keyframes shaft { to { background-position: 0 120px; } }
+  .cable { position: absolute; top: 0; height: 40px; width: 4px; background: #5a4c78; }
+  .car { position: absolute; left: 50%; top: 40px; translate: -50% 0; width: 240px; height: 210px; border-radius: 14px; background: linear-gradient(#f3d9a4, #d9a85e); border: 6px solid #8a5a22; animation: wobble 1.8s ease-in-out infinite; }
+  @keyframes wobble { 50% { rotate: 1.2deg; } }
+  .car::before { content: "13"; position: absolute; top: -34px; left: 50%; translate: -50% 0; background: #120d20; color: #ff5a5a; font-family: "Fredoka"; font-weight: 700; padding: 2px 12px; border-radius: 8px; border: 3px solid #8a5a22; text-shadow: 0 0 8px #ff3030; }
+  .car .floor { position: absolute; left: 0; right: 0; bottom: 0; height: 30px; background: repeating-linear-gradient(90deg, #3b2c55 0 20px, #4b3a69 20px 40px); border-radius: 0 0 6px 6px; }
+  .blob { position: absolute; bottom: 30px; width: 40px; height: 36px; border-radius: 50% 50% 42% 42%; animation: hop .9s ease-in-out infinite; }
+  .blob::before, .blob::after { content: ""; position: absolute; top: 10px; width: 9px; height: 11px; background: #fff; border-radius: 50%; box-shadow: inset 2px -1px 0 3px #1b1430; }
+  .blob::before { left: 9px; } .blob::after { right: 9px; }
+  .blob.a { left: 26px; background: #ff6b57; }
+  .blob.b { left: 100px; background: #3aa5ff; animation-delay: -.3s; }
+  .blob.c { left: 170px; background: #18b98a; animation-delay: -.6s; }
+  @keyframes hop { 50% { transform: translateY(-34px) scaleY(1.08); } }
+  .piano { position: absolute; left: 92px; top: 6px; width: 60px; height: 34px; background: #111; border-radius: 6px; animation: drop 1.8s ease-in infinite; }
+  .piano::after { content: ""; position: absolute; left: 6px; right: 6px; bottom: 4px; height: 10px; background: repeating-linear-gradient(90deg, #fff 0 6px, #222 6px 8px); border-radius: 2px; }
+  @keyframes drop { 0%, 30% { transform: translateY(0); opacity: 1; } 70% { transform: translateY(110px); opacity: 1; } 71%, 100% { opacity: 0; transform: translateY(110px); } }
+
+  .made { margin-top: 28px; padding: 22px 24px; display: flex; gap: 16px; align-items: center; }
+  .made .face { font-size: 40px; }
+  .made p { margin: 0; color: var(--muted); line-height: 1.5; }
+  .made b { color: var(--ink); }
+
+  @media (max-width: 860px) {
+    .hero { grid-template-columns: 1fr; padding-top: 20px; }
+    .keys { height: 200px; max-width: 420px; }
+    .key { width: 66px; height: 66px; font-size: 30px; }
+    .grid { grid-template-columns: 1fr; }
+    .feature { grid-template-columns: 1fr; }
+    .feature .art { min-height: 270px; }
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="topbar">
+    <a class="brand" href="./"><span class="brand-mark">Aa</span> Why Code When You Can Type?</a>
+  </header>
+
+  <section class="hero">
+    <div>
+      <h1>Why <span class="hl">code</span> when you can <span class="hl">type</span><span class="q">?</span></h1>
+      <p>Sometimes you don't want to ship a feature. You just want to type a word and see what happens. These are little games for that.</p>
+      <div style="display:flex;gap:12px;flex-wrap:wrap">
+        <a class="btn" href="wordchain.html">Play Word Chain</a>
+        <a class="btn coral" href="elevator.html">Ride the Elevator 🛗</a>
+      </div>
+    </div>
+    <div class="keys" aria-hidden="true">
+      <div class="key">W</div><div class="key">O</div><div class="key">R</div><div class="key">D</div><div class="key">S</div>
+    </div>
+  </section>
+
+  <div class="section-title"><h2>Word games</h2><span>Bring a friend, or play our bot, Pip.</span></div>
+  <div class="grid">
+    <a class="card game" href="wordchain.html">
+      <div class="art chain"><div class="chain-words"><b>appl<i>e</i></b>→<b><i>e</i>lephan<i>t</i></b>→<b><i>t</i>iger</b></div></div>
+      <div class="body">
+        <div class="tag">Word Chain</div>
+        <h3>Last Letter, First Letter</h3>
+        <p>Say a word. The next word has to start with your last letter. No repeats and no stalling.</p>
+        <span class="btn small">Play →</span>
+      </div>
+    </a>
+    <a class="card game" href="spelling.html">
+      <div class="art spell"><div class="tiles"><span>S</span><span>P</span><span>E</span><span>L</span><span>L</span></div></div>
+      <div class="body">
+        <div class="tag">Spelling Bee</div>
+        <h3>Hear It, Spell It</h3>
+        <p>We read a word out loud and you type it. Three levels, from "cat" to "onomatopoeia."</p>
+        <span class="btn small coral">Play →</span>
+      </div>
+    </a>
+    <a class="card game" href="spelling.html#scramble">
+      <div class="art spell" style="background:linear-gradient(135deg,#18b98a,#3aa5ff)"><div class="tiles"><span style="color:#0f8762">R</span><span style="color:#0f8762">A</span><span style="color:#0f8762">M</span><span style="color:#0f8762">B</span><span style="color:#0f8762">L</span></div></div>
+      <div class="body">
+        <div class="tag">Scramble</div>
+        <h3>Unscramble Rush</h3>
+        <p>The letters are all mixed up and the clock is running. Find as many words as you can in 60 seconds.</p>
+        <span class="btn small mint">Play →</span>
+      </div>
+    </a>
+  </div>
+
+  <a class="card feature" href="elevator.html">
+    <div class="art" aria-hidden="true">
+      <div class="shaft"></div>
+      <div class="cable" style="left:calc(50% - 60px)"></div><div class="cable" style="left:calc(50% + 56px)"></div>
+      <div class="car">
+        <div class="piano"></div>
+        <div class="blob a"></div><div class="blob b"></div><div class="blob c"></div>
+        <div class="floor"></div>
+      </div>
+    </div>
+    <div class="body">
+      <span class="new">NEW · ARCADE</span>
+      <h3>The So Crazy Elevator</h3>
+      <p>You're stuck in an elevator with a bunch of strangers, and every floor is worse than the last. Pianos fall, the floor turns to lava, a giant cat shows up. Stay alive longer than everyone else.</p>
+      <span class="btn coral" style="align-self:flex-start">Press the button 🔼</span>
+    </div>
+  </a>
+
+  <div class="card made">
+    <div class="face">⌨️</div>
+    <p><b>No sign-up, no downloads.</b> Everything runs in your browser. Your best scores stay on this device.</p>
+  </div>
+</div>
+<footer class="footer">Made with way too many keystrokes.</footer>
+</body>
+</html>

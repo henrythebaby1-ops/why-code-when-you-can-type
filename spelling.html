@@ -1,0 +1,315 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Spelling Games</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=Nunito:wght@500;700;800;900&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+<style>
+  .tabs { display: flex; justify-content: center; margin: 6px 0 18px; }
+  .panel { max-width: 680px; margin: 0 auto; padding: 26px; text-align: center; }
+  .panel h1 { font-size: 36px; }
+  .lead { color: var(--muted); font-size: 17px; line-height: 1.5; margin: 8px 0 18px; }
+  .hud { display: flex; justify-content: center; gap: 10px; flex-wrap: wrap; margin-bottom: 18px; }
+  .speaker {
+    width: 130px; height: 130px; border-radius: 50%; border: 0; cursor: pointer; margin: 6px auto 14px; display: grid; place-items: center;
+    background: radial-gradient(circle at 35% 30%, #ffd27a, var(--sun) 50%, #ff8f2b); font-size: 54px; box-shadow: 0 8px 0 #d07a10, 0 20px 40px -10px rgba(255, 140, 30, .6);
+    transition: transform .1s;
+  }
+  .speaker:active { transform: translateY(5px); box-shadow: 0 3px 0 #d07a10; }
+  .speaker.talking { animation: pulse .7s infinite; }
+  @keyframes pulse { 50% { box-shadow: 0 8px 0 #d07a10, 0 0 0 16px rgba(255, 183, 43, .25); } }
+  .sentence { background: var(--bg2); border-radius: 14px; padding: 12px 16px; font-weight: 700; color: var(--muted); margin-bottom: 16px; min-height: 48px; }
+  .sentence b { color: var(--ink); letter-spacing: .2em; }
+  .answer-row { display: flex; gap: 10px; }
+  .answer-row .input { flex: 1; min-width: 0; text-align: center; }
+  .feedback { min-height: 64px; margin-top: 14px; font-weight: 800; font-size: 18px; }
+  .letters { display: inline-flex; gap: 4px; flex-wrap: wrap; justify-content: center; margin-top: 6px; }
+  .letters span { width: 30px; height: 36px; display: grid; place-items: center; border-radius: 8px; font-family: Fredoka; font-weight: 700; font-size: 20px; text-transform: lowercase; }
+  .letters .ok { background: #d6f5ea; color: #0c7a59; }
+  .letters .no { background: #ffe1db; color: #b83a29; }
+  .good { color: var(--mint); } .bad { color: var(--coral); }
+  .opts { display: flex; justify-content: center; gap: 10px; flex-wrap: wrap; margin-top: 12px; }
+
+  .tilebox { display: flex; justify-content: center; gap: 8px; flex-wrap: wrap; margin: 14px 0; min-height: 66px; }
+  .tile {
+    width: 56px; height: 62px; border-radius: 14px; border: 0; cursor: pointer; font-family: Fredoka; font-weight: 700; font-size: 30px; text-transform: uppercase;
+    background: #fff; color: #0f8762; box-shadow: 0 5px 0 #b0ead6; border: 3px solid #b0ead6; transition: transform .1s;
+  }
+  .tile:hover { transform: translateY(-3px) rotate(-3deg); }
+  .tile.used { opacity: .25; pointer-events: none; }
+  .slots .tile { background: var(--mint); color: #fff; border-color: #0f8762; box-shadow: 0 5px 0 #0f8762; }
+  .slot-empty { width: 56px; height: 62px; border-radius: 14px; border: 3px dashed var(--line); }
+  .bigtime { font-family: Fredoka; font-weight: 700; font-size: 44px; }
+  .bigtime.low { color: var(--coral); animation: pop .5s infinite alternate; }
+  .hidden { display: none !important; }
+  .result-emoji { font-size: 64px; }
+  @media (max-width: 560px) {
+    .panel { padding: 20px 14px; }
+    .tile, .slot-empty { width: 44px; height: 50px; font-size: 24px; }
+    .answer-row { flex-direction: column; }
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="topbar">
+    <a class="brand" href="./"><span class="brand-mark">Aa</span> Spelling Games</a>
+    <a class="back" href="./">← All games</a>
+  </header>
+
+  <div class="tabs"><div class="seg" id="tabs"><button class="on" data-tab="spell">🐝 Hear It, Spell It</button><button data-tab="scramble">🔀 Unscramble Rush</button></div></div>
+
+  <!-- SPELL -->
+  <section id="spell" class="card panel">
+    <div id="spellIntro">
+      <h1>Hear It, Spell It</h1>
+      <p class="lead">Tap the big button to hear a word. Then type how it's spelled. There are 10 words per round. Turn your sound on!</p>
+      <div class="seg" id="lvl" style="margin-bottom:18px"><button class="on" data-l="easy">Easy</button><button data-l="medium">Medium</button><button data-l="hard">Hard</button></div><br>
+      <button class="btn coral" id="spellStart">Start round</button>
+    </div>
+    <div id="spellPlay" class="hidden">
+      <div class="hud"><span class="pill" id="sProg">Word 1 / 10</span><span class="pill" id="sScore">⭐ 0</span><span class="pill" id="sStreak">🔥 0</span></div>
+      <button class="speaker" id="speak" aria-label="Hear the word">🔊</button>
+      <div class="sentence" id="sentence">Tap the speaker to hear the word.</div>
+      <form class="answer-row" id="spellForm" autocomplete="off">
+        <input class="input" id="spellIn" placeholder="type the spelling" autocapitalize="off" autocorrect="off" spellcheck="false">
+        <button class="btn">Check</button>
+      </form>
+      <div class="feedback" id="sFeed"></div>
+      <div class="opts"><button class="btn ghost small" id="slow">🐢 Say it slowly</button><button class="btn ghost small" id="skip">Skip</button></div>
+    </div>
+    <div id="spellDone" class="hidden">
+      <div class="result-emoji" id="sEmoji">🐝</div>
+      <h1 id="sTitle"></h1>
+      <p class="lead" id="sSub"></p>
+      <button class="btn coral" id="spellAgain">Another round</button>
+    </div>
+  </section>
+
+  <!-- SCRAMBLE -->
+  <section id="scramble" class="card panel hidden">
+    <div id="scrIntro">
+      <h1>Unscramble Rush</h1>
+      <p class="lead">You get 60 seconds. Tap the letters (or just type) to unscramble each word. Longer words earn more points.</p>
+      <p class="lead" id="scrBest"></p>
+      <button class="btn mint" id="scrStart">Start the clock</button>
+    </div>
+    <div id="scrPlay" class="hidden">
+      <div class="hud"><span class="bigtime" id="scrTime">60</span></div>
+      <div class="hud"><span class="pill" id="scrScore">⭐ 0</span><span class="pill" id="scrSolved">✅ 0 solved</span></div>
+      <div class="tilebox slots" id="slots"></div>
+      <div class="tilebox" id="pool"></div>
+      <div class="feedback" id="scrFeed"></div>
+      <div class="opts">
+        <button class="btn ghost small" id="scrBack">⌫ Undo</button>
+        <button class="btn ghost small" id="scrHint">💡 Hint (−5)</button>
+        <button class="btn ghost small" id="scrSkip">Skip</button>
+      </div>
+    </div>
+    <div id="scrDone" class="hidden">
+      <div class="result-emoji">⏰</div>
+      <h1 id="scrTitle"></h1>
+      <p class="lead" id="scrSub"></p>
+      <button class="btn mint" id="scrAgain">Play again</button>
+    </div>
+  </section>
+</div>
+<footer class="footer">If you can't hear anything, check that your volume is up. Some browsers only play speech after you tap something.</footer>
+<script src="words.js"></script>
+<script>
+(() => {
+  const $ = id => document.getElementById(id);
+  const show = (el, on) => el.classList.toggle("hidden", !on);
+  const shuffle = a => { a = a.slice(); for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; };
+  const store = { get(k) { try { return localStorage.getItem(k); } catch { return null; } }, set(k, v) { try { localStorage.setItem(k, v); } catch {} } };
+
+  // Tabs
+  function setTab(t) {
+    [...$("tabs").children].forEach(b => b.classList.toggle("on", b.dataset.tab === t));
+    show($("spell"), t === "spell"); show($("scramble"), t === "scramble");
+    if (t !== "scramble") stopScramble(false);
+  }
+  $("tabs").onclick = e => { const b = e.target.closest("button"); if (b) { setTab(b.dataset.tab); history.replaceState(null, "", "#" + b.dataset.tab); } };
+  if (location.hash === "#scramble") setTab("scramble");
+
+  // ---------- SPELL ----------
+  let level = "easy", list = [], idx = 0, score = 0, streak = 0, misses = [];
+  $("lvl").onclick = e => { const b = e.target.closest("button"); if (!b) return; [...$("lvl").children].forEach(x => x.classList.toggle("on", x === b)); level = b.dataset.l; };
+
+  const synth = window.speechSynthesis;
+  let voice = null;
+  function pickVoice() {
+    if (!synth) return;
+    const vs = synth.getVoices().filter(v => /^en/i.test(v.lang));
+    voice = vs.find(v => /samantha|google us|aria|jenny|natural/i.test(v.name)) || vs[0] || null;
+  }
+  if (synth) { pickVoice(); synth.onvoiceschanged = pickVoice; }
+
+  function speak(text, rate = .9) {
+    if (!synth) { $("sFeed").innerHTML = '<span class="bad">Your browser can\'t speak, so use the sentence clue instead.</span>'; return; }
+    synth.cancel();
+    const u = new SpeechSynthesisUtterance(text);
+    if (voice) u.voice = voice;
+    u.rate = rate; u.pitch = 1.05;
+    u.onstart = () => $("speak").classList.add("talking");
+    u.onend = u.onerror = () => $("speak").classList.remove("talking");
+    synth.speak(u);
+  }
+
+  $("spellStart").onclick = () => {
+    list = shuffle(WORDS.spelling[level]).slice(0, 10); idx = 0; score = 0; streak = 0; misses = [];
+    show($("spellIntro"), false); show($("spellDone"), false); show($("spellPlay"), true);
+    nextWord();
+  };
+  $("spellAgain").onclick = () => { show($("spellDone"), false); show($("spellIntro"), true); };
+
+  function current() { return list[idx]; }
+  function blanked() {
+    const [w, s] = current();
+    return s.replace(new RegExp(w, "i"), "<b>" + "_".repeat(w.length).split("").join(" ") + "</b>");
+  }
+  function nextWord() {
+    if (idx >= list.length) return finishSpell();
+    $("sProg").textContent = `Word ${idx + 1} / ${list.length}`;
+    $("sScore").textContent = `⭐ ${score}`; $("sStreak").textContent = `🔥 ${streak}`;
+    $("sentence").innerHTML = blanked();
+    $("spellIn").value = ""; $("sFeed").innerHTML = ""; $("spellIn").focus();
+    const [w, s] = current();
+    setTimeout(() => speak(`Spell: ${w}. ... ${s} ... ${w}.`), 250);
+  }
+  $("speak").onclick = () => { const [w] = current(); speak(w, .85); $("spellIn").focus(); };
+  $("slow").onclick = () => { const [w] = current(); speak(w, .45); $("spellIn").focus(); };
+  $("skip").onclick = () => { reveal(""); };
+
+  let locked = false;
+  $("spellForm").onsubmit = e => {
+    e.preventDefault(); if (locked) return;
+    const guess = $("spellIn").value.trim();
+    if (!guess) return;
+    const [w] = current();
+    if (guess.toLowerCase() === w.toLowerCase()) {
+      streak++; score += 10 + Math.min(streak, 5) * 2;
+      const cheers = ["Nailed it!", "Perfect!", "Spelling wizard! 🧙", "Yes!", "Flawless.", "Too easy for you."];
+      $("sFeed").innerHTML = `<span class="good">✓ ${cheers[Math.floor(Math.random() * cheers.length)]}</span>`;
+      if (streak >= 3) $("sFeed").innerHTML += ` <span class="pill">🔥 ${streak} in a row</span>`;
+      locked = true; idx++; setTimeout(() => { locked = false; nextWord(); }, 1000);
+    } else reveal(guess);
+  };
+  function reveal(guess) {
+    const [w] = current();
+    streak = 0; misses.push(w);
+    const g = guess.toLowerCase();
+    const letters = w.split("").map((c, i) => `<span class="${g[i] === c.toLowerCase() ? "ok" : "no"}">${c}</span>`).join("");
+    $("sFeed").innerHTML = `<span class="bad">${guess ? "So close! " : ""}It's spelled:</span><br><div class="letters">${letters}</div>`;
+    $("panelShake")?.remove();
+    $("spell").classList.remove("shake"); void $("spell").offsetWidth; if (guess) $("spell").classList.add("shake");
+    locked = true; idx++; setTimeout(() => { locked = false; nextWord(); }, 2400);
+  }
+  function finishSpell() {
+    show($("spellPlay"), false); show($("spellDone"), true);
+    const right = list.length - misses.length;
+    const key = "wcwyct-spell-" + level; const best = +(store.get(key) || 0);
+    if (score > best) store.set(key, score);
+    $("sEmoji").textContent = right === list.length ? "🏆" : right >= 7 ? "🐝" : right >= 4 ? "📚" : "🌱";
+    $("sTitle").textContent = right === list.length ? "A perfect round!" : `${right} out of ${list.length} right`;
+    $("sSub").innerHTML = `Score: <b>${score}</b>${score > best ? " (new best!)" : ` · Best: ${best}`}` +
+      (misses.length ? `<br>Worth practicing: <b>${misses.join(", ")}</b>` : "<br>You didn't miss a single one. Respect.");
+  }
+
+  // ---------- SCRAMBLE ----------
+  let sw, picked, pool, sScore, solved, tLeft, tId, playing = false;
+  const best = () => +(store.get("wcwyct-scramble") || 0);
+  const updBest = () => $("scrBest").textContent = best() ? `Your best: ${best()} points` : "";
+  updBest();
+
+  $("scrStart").onclick = startScramble; $("scrAgain").onclick = startScramble;
+  function startScramble() {
+    sScore = 0; solved = 0; tLeft = 60; playing = true;
+    show($("scrIntro"), false); show($("scrDone"), false); show($("scrPlay"), true);
+    newScr();
+    clearInterval(tId);
+    const end = Date.now() + 60000;
+    tId = setInterval(() => {
+      tLeft = Math.ceil((end - Date.now()) / 1000);
+      $("scrTime").textContent = Math.max(0, tLeft);
+      $("scrTime").classList.toggle("low", tLeft <= 10);
+      if (tLeft <= 0) stopScramble(true);
+    }, 200);
+    hud();
+  }
+  function stopScramble(showResult) {
+    if (!playing) return;
+    playing = false; clearInterval(tId);
+    if (!showResult) { show($("scrPlay"), false); show($("scrIntro"), true); return; }
+    show($("scrPlay"), false); show($("scrDone"), true);
+    const b = best(); if (sScore > b) store.set("wcwyct-scramble", sScore);
+    $("scrTitle").textContent = `${sScore} points!`;
+    $("scrSub").textContent = (sScore > b ? "That's a new personal best! 🎉 " : "") + `You unscrambled ${solved} word${solved === 1 ? "" : "s"}. The last one was “${sw}”.`;
+    updBest();
+  }
+  function newScr() {
+    let w; do { w = WORDS.scramble[Math.floor(Math.random() * WORDS.scramble.length)]; } while (w === sw);
+    sw = w;
+    let letters; do { letters = shuffle(w.split("")); } while (letters.join("") === w);
+    pool = letters.map((c, i) => ({ c, i, used: false }));
+    picked = [];
+    $("scrFeed").innerHTML = "";
+    render();
+  }
+  function render() {
+    $("pool").innerHTML = ""; $("slots").innerHTML = "";
+    pool.forEach(p => {
+      const b = document.createElement("button"); b.className = "tile" + (p.used ? " used" : ""); b.textContent = p.c;
+      b.onclick = () => pickTile(p); $("pool").appendChild(b);
+    });
+    for (let k = 0; k < sw.length; k++) {
+      if (picked[k]) { const b = document.createElement("button"); b.className = "tile"; b.textContent = picked[k].c; b.onclick = () => undoTo(k); $("slots").appendChild(b); }
+      else { const d = document.createElement("div"); d.className = "slot-empty"; $("slots").appendChild(d); }
+    }
+  }
+  function pickTile(p) {
+    if (!playing || p.used) return;
+    p.used = true; picked.push(p); render();
+    if (picked.length === sw.length) check();
+  }
+  function undoTo(k) { while (picked.length > k) picked.pop().used = false; render(); }
+  function check() {
+    const g = picked.map(p => p.c).join("");
+    if (g === sw) {
+      const pts = sw.length * 10; sScore += pts; solved++;
+      $("scrFeed").innerHTML = `<span class="good">✓ ${sw}! +${pts}</span>`;
+      hud(); setTimeout(() => playing && newScr(), 600);
+    } else {
+      $("scrFeed").innerHTML = `<span class="bad">Nope, try another order.</span>`;
+      $("slots").classList.remove("shake"); void $("slots").offsetWidth; $("slots").classList.add("shake");
+      setTimeout(() => { if (playing) undoTo(0); }, 500);
+    }
+  }
+  function hud() { $("scrScore").textContent = `⭐ ${sScore}`; $("scrSolved").textContent = `✅ ${solved} solved`; }
+  $("scrBack").onclick = () => { if (picked.length) undoTo(picked.length - 1); };
+  $("scrSkip").onclick = () => { if (!playing) return; $("scrFeed").innerHTML = `It was “${sw}”`; setTimeout(() => playing && newScr(), 900); };
+  $("scrHint").onclick = () => {
+    if (!playing) return;
+    // Put the next correct letter in place.
+    undoTo(Math.min(picked.length, firstWrong()));
+    const need = sw[picked.length]; if (!need) return;
+    const p = pool.find(x => !x.used && x.c === need);
+    sScore = Math.max(0, sScore - 5); hud();
+    if (p) pickTile(p);
+  };
+  function firstWrong() { for (let i = 0; i < picked.length; i++) if (picked[i].c !== sw[i]) return i; return picked.length; }
+
+  document.addEventListener("keydown", e => {
+    if (!playing || $("scramble").classList.contains("hidden")) return;
+    if (e.key === "Backspace") { e.preventDefault(); $("scrBack").click(); return; }
+    const k = e.key.toLowerCase();
+    if (/^[a-z]$/.test(k)) { const p = pool.find(x => !x.used && x.c === k); if (p) pickTile(p); }
+  });
+})();
+</script>
+</body>
+</html>
